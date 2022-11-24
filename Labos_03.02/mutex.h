@@ -4,7 +4,7 @@
 #include <windows.h>
 #include <stdio.h>
 
-//#define sinkronizacija
+#define sinkronizacija
 
 #define N_MAX 50
 #define BR_TH 10
@@ -12,58 +12,62 @@ HANDLE mtx;
 HANDLE hThread[BR_TH];
 int Brojac = 1;
 
-unsigned WINAPI Funkcija1(PVOID pvParam){
-	int *n = (int *)pvParam;
-	#ifdef sinkronizacija
+#pragma region Prvi Zadatak
+
+unsigned WINAPI Funkcija1(PVOID pvParam) {
+	int* n = (int*)pvParam;
+#ifdef sinkronizacija
 	WaitForSingleObject(mtx, INFINITE);
-	#endif
-		printf("Funkcija 1 = %d\tThread %d\n", Brojac, *n);
-		Brojac++;
-	#ifdef sinkronizacija
+#endif
+	printf("Funkcija 1 = %d\tThread %d\n", Brojac, *n);
+	Brojac++;
+#ifdef sinkronizacija
 	ReleaseMutex(mtx);
-	#endif
+#endif
 	return 0;
 }
 
-unsigned WINAPI Funkcija2(PVOID pvParam){
+unsigned WINAPI Funkcija2(PVOID pvParam) {
 	int i;
-	int *n = (int *)pvParam;
-	#ifdef sinkronizacija
+	int* n = (int*)pvParam;
+#ifdef sinkronizacija
 	WaitForSingleObject(mtx, INFINITE);
-	#endif
-		for(i = 0; i < N_MAX; i++){
-			printf("Funkcija 2 = %d\tThread %d\n", Brojac, *n);
-			Brojac++;
-		}
-	#ifdef sinkronizacija
+#endif
+	for (i = 0; i < N_MAX; i++) {
+		printf("Funkcija 2 = %d\tThread %d\n", Brojac, *n);
+		Brojac++;
+	}
+#ifdef sinkronizacija
 	ReleaseMutex(mtx);
-	#endif
+#endif
 	return 0;
 }
 
-HANDLE kreirajMutex(){
+HANDLE kreirajMutex() {
 	return CreateMutex(NULL, FALSE, NULL);
 }
 
-void kreirajMutexe(){
+void kreirajMutexe() {
 	int i;
 	unsigned dwThread[BR_TH];
 	mtx = kreirajMutex();
-	for(i = 0; i < BR_TH; ){
-		hThread[i]= (HANDLE) _beginthreadex(NULL, 0, Funkcija1,(PVOID) &dwThread[i], 0, &dwThread[i]);
+	for (i = 0; i < BR_TH; ) {
+		hThread[i] = (HANDLE)_beginthreadex(NULL, 0, Funkcija1, (PVOID)&dwThread[i], 0, &dwThread[i]);
 		i++;
-		hThread[i]= (HANDLE) _beginthreadex(NULL, 0, Funkcija2,(PVOID) &dwThread[i], 0, &dwThread[i]);
+		hThread[i] = (HANDLE)_beginthreadex(NULL, 0, Funkcija2, (PVOID)&dwThread[i], 0, &dwThread[i]);
 		i++;
 	}
 	WaitForMultipleObjects(BR_TH, hThread, TRUE, INFINITE);
 }
 
-void zatvoriMutexe(){
+void zatvoriMutexe() {
 	int i;
-	for(i = 0; i < BR_TH; i++)
+	for (i = 0; i < BR_TH; i++)
 		CloseHandle(hThread[i]);
 	CloseHandle(mtx);
 }
+#pragma endregion
+
 
 /* Drugi zadatak */
 
